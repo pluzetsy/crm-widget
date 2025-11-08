@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Repositories\CustomerRepositoryInterface;
+use App\Repositories\EloquentCustomerRepository;
+use App\Repositories\EloquentTicketRepository;
+use App\Repositories\TicketRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +15,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(CustomerRepositoryInterface::class, EloquentCustomerRepository::class);
+        $this->app->bind(TicketRepositoryInterface::class, EloquentTicketRepository::class);
     }
 
     /**

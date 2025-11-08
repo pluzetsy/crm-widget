@@ -6,9 +6,10 @@ use App\TicketStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Ticket extends Model
+class Ticket extends Model implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
@@ -35,5 +36,10 @@ class Ticket extends Model
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('attachments')->useDisk('public');
     }
 }
