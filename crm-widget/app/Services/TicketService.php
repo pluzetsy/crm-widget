@@ -31,4 +31,9 @@ readonly class TicketService
             return $ticket->load('customer', 'manager', 'media');
         });
     }
+
+    public function getStatistics(): array
+    {
+        return $this->tickets->getStatistics();
+    }
 }
