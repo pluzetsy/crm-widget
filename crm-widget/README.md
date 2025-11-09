@@ -1,59 +1,177 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## CRM Widget
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A lightweight CRM system for receiving and processing support requests from a website via a universal feedback widget.
 
-## About Laravel
+## Technologies
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.4
+- Laravel 12
+- PostgreSQL
+- Docker / docker-compose
+- Blade - for widget and admin panel
+- Spatie Media Library - file storage
+- Spatie Laravel Permission - roles and permissions
+- Laravel Breeze (Blade) - authentication
+- Vite - CSS/JS build for widget and admin panel
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Getting Started
 
-## Learning Laravel
+1. Clone the repository
+bash
+git clone <repository-url> crm-widget
+cd crm-widget
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+2. Configure environment
+bash
+cp .env.example .env
+Then edit .env if necessary:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+env
+APP_NAME="CRM Widget"
+APP_URL=http://localhost:8000
 
-## Laravel Sponsors
+DB_CONNECTION=pgsql
+DB_HOST=db
+DB_PORT=5432
+DB_DATABASE=crm_widget
+DB_USERNAME=crm_widget
+DB_PASSWORD=secret
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. Start Docker containers
+bash
+docker-compose up -d --build
 
-### Premium Partners
+4. Install dependencies and run migrations
+bash
+docker exec -it crm-widget-app bash
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+composer install
+php artisan key:generate
+php artisan migrate --seed
 
-## Contributing
+5. Build frontend (CSS/JS)
+bash
+npm install
+npm run build
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+After that, the application will be available at:
 
-## Code of Conduct
+Widget: http://localhost:8000/widget
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Admin panel: http://localhost:8000/admin/tickets
 
-## Security Vulnerabilities
+API: http://localhost:8000/api/...
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## Test Data
+Seeders create a base dataset including:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1 admin account:
+email: admin@example.com
+password: password
+
+2 manager accounts
+email: test@example.org
+password: password
+
+Several customers and demo tickets.
+
+---
+
+## Widget Integration (iframe)
+html
+<iframe
+    src="https://your-domain.com/widget"
+    title="Feedback widget"
+    style="border:0; width:100%; max-width:420px; height:520px;"
+    loading="lazy"
+></iframe>
+
+---
+
+## API:
+POST /api/tickets
+
+Request (form-data):
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+48123123123",
+  "subject": "Example subject",
+  "text": "This is test ticket text.",
+  "attachments[]": [files]
+}
+
+Response (json):
+{
+    "data": {
+        "id": 1,
+        "subject": "Example subject",
+        "text": "This is test ticket text.",
+        "status": "new",
+        "handled_at": null,
+        "created_at": "2025-11-09T19:29:58+00:00",
+        "updated_at": "2025-11-09T19:29:58+00:00",
+        "customer": {
+            "id": 19,
+            "name": "John Doe",
+            "email": "john2@example.com",
+            "phone": "+48123123125",
+            "created_at": "2025-11-09T19:29:58+00:00",
+            "updated_at": "2025-11-09T19:29:58+00:00"
+        },
+        "manager": null,
+        "attachments": [
+            {
+                "id": 1,
+                "name": "test1.txt",
+                "url": "http://localhost/storage/1/test1.txt"
+            },
+            {
+                "id": 2,
+                "name": "test2.txt",
+                "url": "http://localhost/storage/2/test2.txt"
+            }
+        ]
+    },
+    "message": "Ticket created successfully."
+}
+
+GET /api/tickets/statistics
+
+Response (json):
+{
+    "data": {
+        "periods": {
+            "day": {
+                "new": 3,
+                "in_progress": 0,
+                "done": 0,
+                "total": 3
+            },
+            "week": {
+                "new": 28,
+                "in_progress": 14,
+                "done": 17,
+                "total": 59
+            },
+            "month": {
+                "new": 28,
+                "in_progress": 14,
+                "done": 17,
+                "total": 59
+            }
+        },
+        "summary": {
+            "total_today": 3,
+            "total_week": 59,
+            "total_month": 59
+        }
+    },
+    "message": "Ticket statistics loaded successfully"
+}
+
+
