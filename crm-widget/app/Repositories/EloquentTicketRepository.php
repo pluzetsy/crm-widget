@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Ticket;
 use App\TicketStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EloquentTicketRepository implements TicketRepositoryInterface
 {
@@ -47,5 +48,46 @@ class EloquentTicketRepository implements TicketRepositoryInterface
         $result['total'] = array_sum($result);
 
         return $result;
+    }
+
+    public function paginateWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
+    {
+        return Ticket::query()
+            ->with(['customer', 'manager', 'media'])
+            ->when(!empty($filters['status']), fn(Builder $q) => $q->where('status', $filters['status']))
+            ->when(!empty($filters['email']) || !empty($filters['phone']), function (Builder $q) use ($filters) {
+                $q->whereHas('customer', function (Builder $query) use ($filters) {
+                    if (!empty($filters['email'])) {
+                        $query->where('email', 'ILIKE', '%' . $filters['email'] . '%');
+                    }
+
+                    if (!empty($filters['phone'])) {
+                        $query->where('phone', 'ILIKE', '%' . $filters['phone'] . '%');
+                    }
+                });
+            })
+            ->when(!empty($filters['date_from']), fn(Builder $q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when(!empty($filters['date_to']), fn(Builder $q) => $q->whereDate('created_at', '<=', $filters['date_to']))
+            ->orderByDesc('created_at')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    public function updateStatus(Ticket $ticket, string $status): Ticket
+    {
+        $ticket->status = $status;
+
+        if ($status === TicketStatus::Done->value && is_null($ticket->handled_at)) {
+            $ticket->handled_at = now();
+        }
+
+        $ticket->save();
+
+        return $ticket;
+    }
+
+    public function getWithRelations(Ticket $ticket): Ticket
+    {
+        return $ticket->load(['customer', 'manager', 'media']);
     }
 }

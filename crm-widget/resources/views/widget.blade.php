@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Feedback Widget</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ asset('css/widget.css') }}">
+    @vite(['resources/css/widget.css', 'resources/js/widget.js'])
 </head>
 <body>
 <div class="widget-container">
@@ -66,6 +66,5 @@
         csrfToken: "{{ csrf_token() }}",
     };
 </script>
-<script src="{{ asset('js/widget.js') }}"></script>
 </body>
 </html>

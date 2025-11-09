@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Ticket;
 use App\Repositories\CustomerRepositoryInterface;
 use App\Repositories\TicketRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 readonly class TicketService
@@ -35,5 +36,20 @@ readonly class TicketService
     public function getStatistics(): array
     {
         return $this->tickets->getStatistics();
+    }
+
+    public function paginateWithFilters(array $filters = []): LengthAwarePaginator
+    {
+        return $this->tickets->paginateWithFilters($filters);
+    }
+
+    public function updateStatus(Ticket $ticket, string $status): Ticket
+    {
+        return $this->tickets->updateStatus($ticket, $status)->load('customer', 'manager', 'media');
+    }
+
+    public function getWithRelations(Ticket $ticket): Ticket
+    {
+        return $this->tickets->getWithRelations($ticket);
     }
 }

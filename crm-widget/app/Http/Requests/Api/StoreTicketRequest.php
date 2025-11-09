@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Api;
 
 use App\Rules\E164Phone;
 use Illuminate\Contracts\Validation\ValidationRule;

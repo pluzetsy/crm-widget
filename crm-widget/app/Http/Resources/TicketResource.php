@@ -15,9 +15,6 @@ class TicketResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        Log::debug('$this');
-        Log::debug(json_encode($this, JSON_PRETTY_PRINT));
-
         return [
             'id' => $this->id,
             'subject' => $this->subject,

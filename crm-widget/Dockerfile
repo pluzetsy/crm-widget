@@ -4,6 +4,8 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libpq-dev \
+    nodejs \
+    npm \
  && docker-php-ext-install pdo pdo_pgsql exif \
  && rm -rf /var/lib/apt/lists/*
 

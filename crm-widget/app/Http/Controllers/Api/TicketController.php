@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreTicketRequest;
+use App\Http\Requests\Api\StoreTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Http\Resources\TicketStatisticsResource;
 use App\Services\TicketService;
