@@ -1,0 +1,336 @@
+openapi: 3.0.3
+info:
+  title: CRM Widget API
+  version: 1.0.0
+  description: |
+    API for creating support tickets from the public widget and retrieving ticket statistics.
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/tickets:
+    post:
+      summary: Create a new ticket
+      description: |
+        Creates a new support ticket from the public widget.
+
+        Business rules:
+        - Either email or phone must be provided (at least one).
+        - Only one ticket per day is allowed from the same email or phone.
+        - Attachments are stored via Media Library and returned as URLs.
+      operationId: createTicket
+      tags:
+        - Tickets
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - subject
+                - text
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                  description: Customer name.
+                email:
+                  type: string
+                  format: email
+                  nullable: false
+                  example: john@example.com
+                  description: Customer email.
+                phone:
+                  type: string
+                  nullable: false
+                  example: "+48123123123"
+                  description: |
+                    Customer phone in E.164 format.
+                subject:
+                  type: string
+                  example: Example subject
+                  description: Ticket subject.
+                text:
+                  type: string
+                  example: This is test ticket text.
+                  description: Ticket message text.
+                attachments:
+                  type: array
+                  description: List of files to attach. Max 10 MB per file.
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Ticket created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketResponse"
+              examples:
+                sample:
+                  summary: Example created ticket
+                  value:
+                    data:
+                      id: 1
+                      subject: Example subject
+                      text: This is test ticket text.
+                      status: new
+                      handled_at: null
+                      created_at: "2025-11-09T19:29:58+00:00"
+                      updated_at: "2025-11-09T19:29:58+00:00"
+                      customer:
+                        id: 19
+                        name: John Doe
+                        email: john@example.com
+                        phone: "+48123123123"
+                        created_at: "2025-11-09T19:29:58+00:00"
+                        updated_at: "2025-11-09T19:29:58+00:00"
+                      manager: null
+                      attachments:
+                        - id: 1
+                          name: test1.txt
+                          url: "http://localhost/storage/1/test1.txt"
+                        - id: 2
+                          name: test2.txt
+                          url: "http://localhost/storage/2/test2.txt"
+                    message: Ticket created successfully.
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+              examples:
+                missingRequired:
+                  summary: Missing required fields
+                  value:
+                    message: The given data was invalid.
+                    errors:
+                      name:
+                        - The name field is required.
+                      subject:
+                        - The subject field is required.
+                      text:
+                        - The text field is required.
+                rateLimited:
+                  summary: Duplicate within 24 hours
+                  value:
+                    message: You can send only one request per day from the same email or phone number.
+                    errors:
+                      email:
+                        - You can send only one request per day from the same email or phone number.
+
+  /api/tickets/statistics:
+    get:
+      summary: Get ticket statistics
+      description: Returns aggregated ticket statistics for day, week and month.
+      operationId: getTicketStatistics
+      tags:
+        - Tickets
+      responses:
+        "200":
+          description: Ticket statistics loaded successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketStatisticsResponse"
+              examples:
+                sample:
+                  value:
+                    data:
+                      periods:
+                        day:
+                          new: 3
+                          in_progress: 0
+                          done: 0
+                          total: 3
+                        week:
+                          new: 28
+                          in_progress: 14
+                          done: 17
+                          total: 59
+                        month:
+                          new: 28
+                          in_progress: 14
+                          done: 17
+                          total: 59
+                      summary:
+                        total_today: 3
+                        total_week: 59
+                        total_month: 59
+                    message: Ticket statistics loaded successfully
+
+components:
+  schemas:
+    TicketResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/Ticket"
+        message:
+          type: string
+          example: Ticket created successfully.
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        subject:
+          type: string
+          example: Example subject
+        text:
+          type: string
+          example: This is test ticket text.
+        status:
+          type: string
+          enum: [new, in_progress, done]
+          example: new
+        handled_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2025-11-09T19:29:58+00:00"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-11-09T19:29:58+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-11-09T19:29:58+00:00"
+        customer:
+          $ref: "#/components/schemas/Customer"
+        manager:
+          oneOf:
+            - $ref: "#/components/schemas/UserSummary"
+            - type: "null"
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attachment"
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 19
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: john@example.com
+        phone:
+          type: string
+          nullable: true
+          example: "+48123123123"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserSummary:
+      type: object
+      description: Minimal representation of the assigned manager.
+      properties:
+        id:
+          type: integer
+          example: 5
+        name:
+          type: string
+          example: Manager Name
+        email:
+          type: string
+          format: email
+          example: manager@example.com
+
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: test1.txt
+        url:
+          type: string
+          format: uri
+          example: "http://localhost/storage/1/test1.txt"
+
+    TicketStatisticsResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/TicketStatistics"
+        message:
+          type: string
+          example: Ticket statistics loaded successfully
+
+    TicketStatistics:
+      type: object
+      properties:
+        periods:
+          type: object
+          properties:
+            day:
+              $ref: "#/components/schemas/TicketPeriodStats"
+            week:
+              $ref: "#/components/schemas/TicketPeriodStats"
+            month:
+              $ref: "#/components/schemas/TicketPeriodStats"
+        summary:
+          $ref: "#/components/schemas/TicketSummaryStats"
+
+    TicketPeriodStats:
+      type: object
+      properties:
+        new:
+          type: integer
+          example: 3
+        in_progress:
+          type: integer
+          example: 0
+        done:
+          type: integer
+          example: 0
+        total:
+          type: integer
+          example: 3
+
+    TicketSummaryStats:
+      type: object
+      properties:
+        total_today:
+          type: integer
+          example: 3
+        total_week:
+          type: integer
+          example: 59
+        total_month:
+          type: integer
+          example: 59
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
