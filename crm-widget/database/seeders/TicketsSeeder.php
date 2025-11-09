@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TicketStatus;
 use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\User;
-use App\TicketStatus;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TicketsSeeder extends Seeder

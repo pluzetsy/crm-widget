@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TicketStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TicketIndexRequest;
 use App\Http\Requests\Admin\UpdateTicketStatusRequest;
 use App\Models\Ticket;
 use App\Services\TicketService;
-use App\TicketStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 

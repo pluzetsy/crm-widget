@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\TicketStatus;
+use App\Enums\TicketStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

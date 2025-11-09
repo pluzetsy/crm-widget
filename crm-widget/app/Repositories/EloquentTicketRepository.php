@@ -2,9 +2,9 @@
 
 namespace App\Repositories;
 
+use App\Enums\TicketStatus;
 use App\Models\Customer;
 use App\Models\Ticket;
-use App\TicketStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
